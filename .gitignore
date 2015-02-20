@@ -93,6 +93,7 @@ GTAGS
 
 # lichee ingnore files
 skel/
+bin/
 output/
 bImage
 *.swp
