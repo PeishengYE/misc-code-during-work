@@ -33,7 +33,7 @@ void insert_data(int data)
 	}else{
 
 		for(iter = head -> next, iter_prev = head;
-				iter != NULL;
+				iter -> next != NULL;
 				iter = iter -> next, 
 				iter_prev = iter_prev -> next){
 
@@ -54,8 +54,12 @@ void insert_data(int data)
 
 		/* not found,  put the new node at the end of list */
 
+		/*
 		iter_prev -> next = new_node;
 		new_node -> prev = iter_prev;
+		*/
+		iter -> next = new_node;
+		new_node -> prev = iter;
 
 	}
 
