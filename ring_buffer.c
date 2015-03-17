@@ -30,15 +30,20 @@ void init_rb( int size)
 	p_rb->full_flag = BUFFER_EMPTY;
 }
 
-void write_rb( uint8_t *mem, int mem_size)
+void write_rb( const uint8_t *mem, int mem_size)
 {
 	uint8_t *m_head, *m_tail;
 	uint32_t remain_size;
 	m_head = p_rb->head;
 	m_tail = p_rb->tail;
-	/**/
+	/*
+	 * NOTE 
+	 * All these call should be sure that 
+	 * the mem_size no more than the avaible buffer size
+	 * */
 	remain_size = p_rb->end - p_rb->head + 1;
-	if(m_head > m_tail){
+	if(m_head >= m_tail){
+		printf("%s()>> 1\n", __FUNCTION__);
 		if(mem_size > remain_size ){
 				memcpy(m_head,mem, remain_size);
 				memcpy(p_rb->start, mem + remain_size, mem_size - remain_size);
@@ -54,10 +59,12 @@ void write_rb( uint8_t *mem, int mem_size)
 		}
 
 	}else{
+		printf("%s()>> 2\n", __FUNCTION__);
 		/* tail >= head */
 		memcpy(p_rb->head, mem, mem_size);
 		p_rb->head = p_rb->head + mem_size;
 
+	printf("%s()>> 3\n", __FUNCTION__);
 	}
 
 	if(p_rb->head == p_rb->tail){
@@ -68,14 +75,18 @@ void write_rb( uint8_t *mem, int mem_size)
 
 }
 
-void reading_rb(uint8_t* mem, int copy_size )
+void reading_rb( uint8_t* mem, int copy_size )
 {
 
 	uint32_t remain_size;
 	/* 
 	 * tail > head 
 	 * tail is before head */
-	if( p_rb->tail > p_rb->head ) {
+	/*
+	 * NOTE: 
+	 * all these call should be sure that the size to read is no more than available size  */
+	if( p_rb->tail >= p_rb->head ) {
+		printf("%s()>> 1\n", __FUNCTION__);
 
 		remain_size = p_rb->end - p_rb->tail + 1;
 		if( copy_size > remain_size){
@@ -97,6 +108,7 @@ void reading_rb(uint8_t* mem, int copy_size )
 	/* 
 	 * tail <= head
 	 * tail is after or equal  head  */
+		printf("%s()>> 2\n", __FUNCTION__);
 		memcpy(mem, p_rb->tail, copy_size);
 		p_rb->tail += copy_size;
 
@@ -104,6 +116,7 @@ void reading_rb(uint8_t* mem, int copy_size )
 	}
 
 	if(p_rb->tail == p_rb->head){
+		printf("%s()>> 3\n", __FUNCTION__);
 		p_rb->full_flag = BUFFER_EMPTY;
 	}
 
@@ -130,9 +143,7 @@ int check_data_size()
 	return size;
 
 }
-
-int check_available_buffer_size()
-{
+int check_available_buffer_size() {
 	int buffer_size;
 	buffer_size = p_rb->size - check_data_size();
 	return buffer_size;
@@ -166,13 +177,17 @@ void read_buffer_and_write_to_file( FILE * output_file, int buffer_reading_size 
 
 	mem = (uint8_t *)malloc(buffer_writing_size);
 
+	printf("%s()>> 0\n",__FUNCTION__);
 
-	ret = fread(mem, 1, buffer_writing_size,input_file);
+	ret = fread(mem, 1, buffer_writing_size, input_file);
 //void write_rb( uint8_t *mem, int mem_size)
+	//printf("\ngoing to write to buffer\n");
 	write_rb( mem,  buffer_writing_size);
+	printf("%s()>> 2 \n",__FUNCTION__);
 
 	free(mem);
 
+	printf("%s()>> 3\n",__FUNCTION__);
 	return ret;
 
 }
@@ -222,7 +237,7 @@ int main(int argc, char *argv[])
 	int read_size;
 
 	file_input = fopen(FILE_INPUT, "r");
-	file_output = fopen(FILE_OUTPUT, "r");
+	file_output = fopen(FILE_OUTPUT, "w");
 
 	printf("\ngetting init_rb.\n");
 	init_rb( MAXIMUM_SIZE);
@@ -234,6 +249,7 @@ int main(int argc, char *argv[])
 
 	read_size = read_file_and_write_to_buffer( file_input,  buffer_writing_size);
 
+	printf("\ngetting size_to_write()\n");
 	while ( read_size == buffer_writing_size){
 		printf("\nloop with buffer_writing_size = %d\n", buffer_writing_size);
 
@@ -241,7 +257,10 @@ int main(int argc, char *argv[])
 		printf("\nloop with buffer_reading_size = %d\n", buffer_reading_size);
  		read_buffer_and_write_to_file( file_output,  buffer_reading_size );
 
+		buffer_writing_size = size_to_write();
+		printf("loop with buffer_writing_size = %d\n", buffer_writing_size);
 		read_size = read_file_and_write_to_buffer( file_input,  buffer_writing_size );
+		printf("return with buffer_writing_size = %d ...\n", read_size);
 
 	}
  		read_buffer_and_write_to_file( file_output,  read_size );
