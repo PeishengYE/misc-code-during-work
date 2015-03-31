@@ -9,6 +9,7 @@ int main()
 {
    const char str[80] = "This is - www.tutorialspoint.com - website";
    const char s[2] = "-";
+   //char *p_name, *p_value, *p_test;
    char *p_name, *p_value;
 
 
@@ -18,21 +19,17 @@ int main()
    config_file =  fopen(CONFIG_FILE_NAME, "r+");
 
    //fget(line, );
-   fgets(line,CONFIG_FILE_LINE_MAX, config_file );
+   while (fgets(line,CONFIG_FILE_LINE_MAX, config_file ) != NULL){
+
+   	  /* get the first token */
+   	  p_name = strtok(line, CONFIG_FILE_DELIMITER);
+
+      p_value = strtok(NULL, CONFIG_FILE_DELIMITER);
+      //p_test = strtok(NULL, CONFIG_FILE_DELIMITER);
+      printf( " name == %s,  value == %s \n", p_name, p_value );
+      //printf( " test == %s " , p_test );
+   }
 
    
-   /* get the first token */
-   p_name = strtok(line, CONFIG_FILE_DELIMITER);
-   
-   /* walk through other tokens */
-   while( p_name != NULL ) 
-   {
-    
-      p_value = strtok(NULL, CONFIG_FILE_DELIMITER);
-      printf( " name == %s,  value == %s \n", p_name, p_value );
-   	 fgets(line,CONFIG_FILE_LINE_MAX, config_file );
-     p_name = strtok(line, CONFIG_FILE_DELIMITER);
-   }
-   
-   return(0);
+     return(0);
 }
