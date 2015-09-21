@@ -2,7 +2,8 @@
 #include <stdlib.h>
 int main()
 {
-	char array[10] = {1,2,3,4,5,252,0 };
+	//char array[10] = {1,2,3,4,5,252,0 };
+	char array[10] = {1,2,3,4,5,0,1 };
 	int size, i;
 	short cast_short;
 	short *p_cast_short;
