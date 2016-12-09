@@ -26,8 +26,30 @@ enum tag_DISP_CMD{
     DISP_CMD_LCD_ON = 0x140,
     DISP_CMD_LCD_OFF = 0x141,
     DISP_CMD_LCD_SET_BRIGHTNESS = 0x142,
-    DISP_CMD_LCD_ON_CONFIRM = 0x14f
+    DISP_CMD_LCD_ON_CONFIRM = 0x14f,
+
+    DISP_CMD_PWM_SET_PARA = 0x300,
+    DISP_CMD_PWM_GET_PARA = 0x301
+
 }__disp_cmd_t;
+
+
+typedef struct
+{
+    /*
+    __bool enable;
+    __u32 active_state;
+    __u32 duty_ns;
+    __u32 period_ns;
+    */
+
+
+    signed char enable;
+    unsigned int active_state;
+    unsigned int duty_ns;
+    unsigned int period_ns;
+
+}__pwm_info_t;
 
 int disp_on()
 {
@@ -107,6 +129,55 @@ static int set_light_backlight(int brightness )
     return err;
 }
 
+static int get_pwm_parameter( )
+{
+
+    int err = 0;
+	int disphd;
+    unsigned long  args[3];
+    __pwm_info_t pwm_info;
+
+	args[0]  = 0;
+	args[1]  = (unsigned int)&pwm_info;
+	args[2]  = 0;
+
+
+	if((disphd = open("/dev/disp",O_RDWR)) == -1)
+	{
+		printf("open file /dev/disp fail. \n");
+		return -1;
+	}
+
+    memset(&pwm_info, 0, sizeof(__pwm_info_t));
+
+	err = ioctl(disphd, DISP_CMD_PWM_GET_PARA, args);
+    if(err < 0 ){
+		printf("get_pwm_parameter()>> failed \n");
+    }else{
+
+		printf("get_pwm_parameter()>> successfully \n");
+
+        /*
+    __bool enable;
+    __u32 active_state;
+    __u32 duty_ns;
+    */
+        
+
+	    printf(" pwm_info.enable = %d\n", pwm_info.enable);
+	    printf(" pwm_info.active_state = %d\n", pwm_info.active_state);
+	    printf(" pwm_info.duty_ns = %d ns\n", pwm_info.duty_ns);
+	    printf(" pwm_info.period_ns = %d ns\n", pwm_info.period_ns);
+    }
+
+
+	close(disphd);
+    return err;
+}
+
+
+
+
 
 
 int
@@ -120,11 +191,11 @@ main (int argc, char **argv)
   int c;
   int color_input;
 
+  opterr = 0;
   fprintf (stderr, "Option a for enable backlight, b for disable backlight, c for brightness (1-255)\n");
   fprintf (stderr, "./backlight_controller -a -c255\n");
   fprintf (stderr, "./backlight_controller -a -c5\n");
-  fprintf (stderr, "./backlight_controller -b \n");
-  opterr = 0;
+  fprintf (stderr, "./backlight_controller -b \n\n\n");
   while ((c = getopt (argc, argv, "abc:")) != -1)
     switch (c)
       {
@@ -166,6 +237,7 @@ main (int argc, char **argv)
     printf ("brightness:  %d\n", brightness);
     
     set_light_backlight( brightness );
+    get_pwm_parameter();
 
     /*
     for(color_input = 0; color_input < 0xffffff ; color_input += 0x20)
